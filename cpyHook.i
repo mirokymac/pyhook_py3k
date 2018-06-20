@@ -46,7 +46,11 @@
     PyObject *arglist, *r;
     PKBDLLHOOKSTRUCT kbd;
     HWND hwnd;
-    PSTR win_name = NULL;
+#ifdef PY3K
+    LPWSTR win_name = NULL;
+#else
+    LPSTR win_name = NULL;
+#endif
     unsigned short ascii = 0;
     static int win_len;
     static long result;
@@ -77,13 +81,17 @@
     // grab the window name if possible
     win_len = GetWindowTextLength(hwnd);
     if(win_len > 0) {
-      win_name = (PSTR) malloc(sizeof(char) * win_len + 1);
+      #ifdef PY3K
+        win_name = (LPWSTR) malloc(sizeof(wchar_t) * win_len + 1);
+      #else
+        win_name = (LPSTR) malloc(sizeof(char) * win_len + 1);
+      #endif
       GetWindowText(hwnd, win_name, win_len + 1);
     }
 
-#ifdef PY3K
-    win_name_decoded = PyUnicode_DecodeFSDefault(win_name);
-#endif
+//#ifdef PY3K
+//    win_name_decoded = PyUnicode_DecodeFSDefault(win_name);
+//#endif
 
     // convert to an ASCII code if possible
     ascii = ConvertToASCII(kbd->vkCode, kbd->scanCode);
@@ -91,7 +99,7 @@
     // pass the message on to the Python function
 #ifdef PY3K
     arglist = Py_BuildValue("(iiiiiiiu)", wParam, kbd->vkCode, kbd->scanCode, ascii,
-                            kbd->flags, kbd->time, hwnd, win_name_decoded);
+                            kbd->flags, kbd->time, hwnd, win_name);
 #else
     arglist = Py_BuildValue("(iiiiiiiz)", wParam, kbd->vkCode, kbd->scanCode, ascii,
                             kbd->flags, kbd->time, hwnd, win_name);
@@ -136,7 +144,13 @@
     PyObject *arglist, *r;
     PMSLLHOOKSTRUCT ms;
     HWND hwnd;
-    PSTR win_name = NULL;
+
+#ifdef PY3K
+    LPWSTR win_name = NULL;
+#else
+    LPSTR win_name = NULL;
+#endif
+
     static int win_len;
     static long result;
     long pass = 1;
@@ -156,13 +170,17 @@
     //grab the window name if possible
     win_len = GetWindowTextLength(hwnd);
     if(win_len > 0) {
-      win_name = (PSTR) malloc(sizeof(char) * win_len + 1);
+      #ifdef PY3K
+        win_name = (LPWSTR) malloc(sizeof(wchar_t) * win_len + 1);
+      #else
+        win_name = (LPSTR) malloc(sizeof(char) * win_len + 1);
+      #endif
       GetWindowText(hwnd, win_name, win_len + 1);
     }
 
-#ifdef PY3K
-    win_name_decoded = PyUnicode_DecodeFSDefault(win_name);
-#endif
+//#ifdef PY3K
+//    win_name_decoded = PyUnicode_DecodeFSDefault(win_name);
+//#endif
 
     //build the argument list to the callback function
 #ifdef PY3K
