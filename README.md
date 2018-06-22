@@ -18,6 +18,17 @@ python setup.py build_ext --swig=path-to-swig.exe
 pip install .
 ```
 
+Somehow you can also build with anaconda/miniconda prompt.
+
+Incase you are using Windows 10:
+
+```
+> <disk label>:
+> cd <path to pyHook_py3k>
+> python setup.py build_ext --swig=<path-to-swig.exe>
+> pip install --force-reinstall .
+```
+
 ## About this fork
 
 ### Unicode
@@ -29,6 +40,8 @@ Fixed unicode decoding bug of window title. This bug may cause crashing on exit 
 or
 
 > TypeError: KeyboardSwitch() takes exactly 9 arguments (1 given)
+
+In this branch, using Unicode string and GetWindowTextW explicitingly instead of only using Pydecoding.
 
 ### Freezing
 
