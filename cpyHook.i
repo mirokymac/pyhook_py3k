@@ -46,20 +46,16 @@
     PyObject *arglist, *r;
     PKBDLLHOOKSTRUCT kbd;
     HWND hwnd;
-#ifdef PY3K
-    LPWSTR win_name = NULL;
-#else
-    LPSTR win_name = NULL;
-#endif
+    #ifdef PY3K
+        LPWSTR win_name = NULL;
+    #else
+        PSTR win_name = NULL;
+    #endif
     unsigned short ascii = 0;
     static int win_len;
     static long result;
     long pass = 1;
     PyGILState_STATE gil;
-
-#ifdef PY3K
-    PyObject *win_name_decoded = NULL;
-#endif
 
     // uncomment this next bit if you do not want to process events like "ctl-alt-del"
     // and other events that are not supposed to be processed
@@ -80,24 +76,26 @@
 
     // grab the window name if possible
     win_len = GetWindowTextLength(hwnd);
+    
     if(win_len > 0) {
-      #ifdef PY3K
-        win_name = (LPWSTR) malloc(sizeof(wchar_t) * win_len + 1);
-      #else
-        win_name = (LPSTR) malloc(sizeof(char) * win_len + 1);
-      #endif
-      GetWindowText(hwnd, win_name, win_len + 1);
+        #ifdef PY3K
+
+            win_name = (LPWSTR) malloc(sizeof(wchar_t) * win_len + 1);
+            GetWindowTextW(hwnd, win_name, win_len + 1);
+            // for test output
+            // wprintf(win_name)
+        #else
+            win_name = (PSTR) malloc(sizeof(char) * win_len + 1);
+            GetWindowText(hwnd, win_name, win_len + 1);
+        #endif
     }
-
-//#ifdef PY3K
-//    win_name_decoded = PyUnicode_DecodeFSDefault(win_name);
-//#endif
-
+    
     // convert to an ASCII code if possible
     ascii = ConvertToASCII(kbd->vkCode, kbd->scanCode);
 
     // pass the message on to the Python function
 #ifdef PY3K
+    wprintf(win_name);
     arglist = Py_BuildValue("(iiiiiiiu)", wParam, kbd->vkCode, kbd->scanCode, ascii,
                             kbd->flags, kbd->time, hwnd, win_name);
 #else
@@ -108,11 +106,6 @@
       PyErr_Print();
 
     r = PyObject_CallObject(callback_funcs[WH_KEYBOARD_LL], arglist);
-
-#ifdef PY3K
-    // release unicode object
-    Py_DECREF(win_name_decoded);
-#endif
 
     // check if we should pass the event on or not
     if(r == NULL)
@@ -144,21 +137,15 @@
     PyObject *arglist, *r;
     PMSLLHOOKSTRUCT ms;
     HWND hwnd;
-
-#ifdef PY3K
-    LPWSTR win_name = NULL;
-#else
-    LPSTR win_name = NULL;
-#endif
-
+    #ifdef PY3K
+        LPWSTR win_name = NULL;
+    #else
+        PSTR win_name = NULL;
+    #endif
     static int win_len;
     static long result;
     long pass = 1;
     PyGILState_STATE gil;
-
-#ifdef PY3K
-    PyObject *win_name_decoded = NULL;
-#endif
 
     // get the GIL
     gil = PyGILState_Ensure();
@@ -170,22 +157,19 @@
     //grab the window name if possible
     win_len = GetWindowTextLength(hwnd);
     if(win_len > 0) {
-      #ifdef PY3K
-        win_name = (LPWSTR) malloc(sizeof(wchar_t) * win_len + 1);
-      #else
-        win_name = (LPSTR) malloc(sizeof(char) * win_len + 1);
-      #endif
-      GetWindowText(hwnd, win_name, win_len + 1);
+        #ifdef PY3K
+            win_name = (LPWSTR) malloc(sizeof(wchar_t) * win_len + 1);
+            GetWindowTextW(hwnd, win_name, win_len + 1);
+        #else
+            win_name = (PSTR) malloc(sizeof(char) * win_len + 1);
+            GetWindowText(hwnd, win_name, win_len + 1);
+        #endif
     }
-
-//#ifdef PY3K
-//    win_name_decoded = PyUnicode_DecodeFSDefault(win_name);
-//#endif
 
     //build the argument list to the callback function
 #ifdef PY3K
     arglist = Py_BuildValue("(iiiiiiiu)", wParam, ms->pt.x, ms->pt.y, ms->mouseData,
-                            ms->flags, ms->time, hwnd, win_name_decoded);
+                            ms->flags, ms->time, hwnd, win_name);
 #else
     arglist = Py_BuildValue("(iiiiiiiz)", wParam, ms->pt.x, ms->pt.y, ms->mouseData,
                             ms->flags, ms->time, hwnd, win_name);
@@ -194,11 +178,6 @@
       PyErr_Print();
 
     r = PyObject_CallObject(callback_funcs[WH_MOUSE_LL], arglist);
-
-#ifdef PY3K
-    // release unicode object
-    Py_DECREF(win_name_decoded);
-#endif
 
     // check if we should pass the event on or not
     if(r == NULL)
